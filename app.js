@@ -2,6 +2,9 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js';
 import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, runTransaction, serverTimestamp, getDocs } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js';
 
+// Importa Firebase Storage
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-storage.js';
+
 // Configura tu proyecto Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCaGaqkFjt11rjCZ2tscCy3YimzJV_gido",
@@ -15,16 +18,33 @@ const firebaseConfig = {
 // Inicializa Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const storage = getStorage(app);
+
+
+
+
+
 
 // Maneja el envío del formulario de publicaciones
 document.getElementById('postForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const content = document.getElementById('postContent').value;
+  const imageFile = document.getElementById('postImage').files[0];
 
   if (content) {
     try {
+      let imageUrl = '';
+      
+      if (imageFile) {
+        // Convertir el archivo a base64
+        const base64Image = await fileToBase64(imageFile);
+        imageUrl = base64Image;  // Aquí guardamos el base64
+      }
+
+      // Guardar el contenido y la imagen (base64) en Firestore
       await addDoc(collection(db, 'posts'), {
         content: content,
+        imageUrl: imageUrl, // Guardar el base64 de la imagen
         timestamp: serverTimestamp(),
         reactions: {
           like: 0,
@@ -33,11 +53,33 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
       });
 
       document.getElementById('postContent').value = '';
+      document.getElementById('postImage').value = '';
     } catch (error) {
       console.error("Error al agregar la publicación: ", error);
     }
   }
 });
+
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result;
+      const prefix = `data:${file.type};base64,`;
+      resolve(prefix + base64.split(',')[1]); // Solo guardar la parte después de la coma
+    };
+    reader.onerror = error => reject(error);
+    reader.readAsDataURL(file);
+  });
+}
+
+
+
+
+
+
+
 
 // Maneja el envío del formulario de respuestas
 async function addResponse(postId, responseContent) {
@@ -66,22 +108,24 @@ function loadPosts() {
       const postElement = document.createElement('div');
       postElement.className = 'card mb-3';
       postElement.innerHTML = `
-        <div class="card-body">
-          <p class="card-text">${post.content}</p>
-          <button class="btn btn-success me-2" onclick="react('${postId}', 'like')">👍 Like (${post.reactions.like})</button>
-          <button class="btn btn-danger" onclick="react('${postId}', 'dislike')">👎 Dislike (${post.reactions.dislike})</button>
-          <form id="responseForm-${postId}" class="mt-3">
-            <div class="mb-3">
-              <label for="responseContent-${postId}" class="form-label">Respuesta</label>
-              <textarea id="responseContent-${postId}" class="form-control" rows="2"></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">Responder</button>
-          </form>
-          <div id="responses-${postId}" class="mt-3">
-            <!-- Aquí se mostrarán las respuestas -->
+      <div class="card-body">
+        <p class="card-text">${post.content}</p>
+        ${post.imageUrl ? `<img src="${post.imageUrl}" class="img-fluid" alt="Imagen del post">` : ''}
+        <button class="btn btn-success me-2" onclick="react('${postId}', 'like')">👍 Like (${post.reactions.like})</button>
+        <button class="btn btn-danger" onclick="react('${postId}', 'dislike')">👎 Dislike (${post.reactions.dislike})</button>
+        <form id="responseForm-${postId}" class="mt-3">
+          <div class="mb-3">
+            <label for="responseContent-${postId}" class="form-label">Respuesta</label>
+            <textarea id="responseContent-${postId}" class="form-control" rows="2"></textarea>
           </div>
+          <button type="submit" class="btn btn-primary">Responder</button>
+        </form>
+        <div id="responses-${postId}" class="mt-3">
+          <!-- Aquí se mostrarán las respuestas -->
         </div>
-      `;
+      </div>
+    `;
+
       postsContainer.appendChild(postElement);
 
       // Manejar el envío del formulario de respuesta

@@ -33,8 +33,13 @@
             <label for="postContent" class="form-label">Contenido</label>
             <textarea id="postContent" class="form-control" rows="3"></textarea>
           </div>
+          <div class="mb-3">
+            <label for="postImage" class="form-label">Subir Imagen</label>
+            <input type="file" id="postImage" class="form-control" accept="image/*" />
+          </div>
           <button type="submit" class="btn btn-primary">Publicar</button>
         </form>
+        
         <div id="posts" class="mt-4">
           <!-- Aquí se mostrarán las publicaciones -->
         </div>
@@ -50,6 +55,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-auth.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-storage.js"></script>
+
 
     <script type="module" src="app.js"></script>
   </body>
