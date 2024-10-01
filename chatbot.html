@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot IA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #chatbox {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        #userInput {
+            width: 80%;
+            padding: 10px;
+            margin-right: 10px;
+        }
+        #sendBtn {
+            padding: 10px 20px;
+        }
+        .message {
+            margin-top: 20px;
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js';
+        import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvW6i2h-kjvFHyog6GeZ1aSSjR4Ewucik",
+            authDomain: "chatbot-c3fd8.firebaseapp.com",
+            databaseURL: "https://chatbot-c3fd8-default-rtdb.firebaseio.com",
+            projectId: "chatbot-c3fd8",
+            storageBucket: "chatbot-c3fd8.appspot.com",
+            messagingSenderId: "1052339771083",
+            appId: "1:1052339771083:web:259751a5f99e2d5517ad4e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app); // Conecta a Realtime Database
+
+        function saveConversation(userMessage, botResponse) {
+            const conversationsRef = ref(db, 'conversaciones/' + Date.now()); // Genera un ID único usando el timestamp
+            set(conversationsRef, {
+                userMessage: userMessage,
+                botResponse: botResponse,
+                timestamp: new Date().toISOString() // Guarda la fecha y hora en formato ISO
+            })
+            .then(() => {
+                console.log('Conversación guardada exitosamente en Realtime Database');
+            })
+            .catch((error) => {
+                console.error('Error al guardar la conversación en Realtime Database:', error);
+            });
+        }
+
+        // Aquí va el código del chatbot y la función para enviar mensajes
+
+        document.getElementById('sendBtn').addEventListener('click', function() {
+            const userMessage = document.getElementById('userInput').value;
+            if (userMessage.trim() !== "") {
+                const chatbox = document.getElementById('chatbox');
+                chatbox.innerHTML += `<p><strong>Tú:</strong> ${userMessage}</p>`;
+                document.getElementById('userInput').value = '';
+
+                fetch('https://chatbot-production-fbcb.up.railway.app/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: userMessage }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    chatbox.innerHTML += `<p><strong>Chatbot:</strong> ${data.response}</p>`;
+                    chatbox.scrollTop = chatbox.scrollHeight; // Desplazar hacia abajo
+
+                    // Guarda la conversación en Realtime Database
+                    saveConversation(userMessage, data.response);
+                })
+                .catch(error => {
+                    console.error('Error al recibir respuesta del chatbot:', error);
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>Chatbot con IA</h1>
+
+    <div id="chatbox"></div>
+    
+    <input type="text" id="userInput" placeholder="Escribe tu mensaje aquí...">
+    <button id="sendBtn">Enviar</button>
+    <div class="message"></div>
+</body>
+</html>

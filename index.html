@@ -45,6 +45,31 @@
         </div>
       </div>
     </main>
+
+
+    <div id="chatbot-container" style="position: fixed; bottom: 20px; right: 20px; width: 300px; height: 400px; display: none;">
+      <iframe id="chatbot-frame" src="https://chatbot-production-fbcb.up.railway.app/" width="100%" height="100%" frameborder="0"></iframe>
+    </div>
+    <button id="open-chatbot" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;" class="btn btn-primary">Abrir Chatbot</button>
+    <script>
+      // Al hacer clic en el botón, se despliega el chatbot
+      const openChatbotBtn = document.getElementById('open-chatbot');
+      const chatbotContainer = document.getElementById('chatbot-container');
+      
+      openChatbotBtn.addEventListener('click', () => {
+        if (chatbotContainer.style.display === 'none' || chatbotContainer.style.display === '') {
+          chatbotContainer.style.display = 'block'; // Mostrar el chatbot
+          openChatbotBtn.textContent = 'Cerrar Chatbot'; // Cambiar el texto del botón
+        } else {
+          chatbotContainer.style.display = 'none'; // Ocultar el chatbot
+          openChatbotBtn.textContent = 'Abrir Chatbot'; // Cambiar el texto del botón
+        }
+      });
+    </script>
+
+    
+
+    
     <footer>
       <!-- place footer here -->
     </footer>
@@ -59,6 +84,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-storage.js"></script>
 
 
-    <script type="module" src="app.js"></script>
+    <script type="module" src="Funcionalidadbasededatosapp.js"></script>
   </body>
 </html>
